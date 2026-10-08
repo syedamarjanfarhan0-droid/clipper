@@ -1,0 +1,9 @@
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.transcript.json
+output/
+ffmpeg
+ffmpeg.exe
+__pycache__/

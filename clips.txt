@@ -1,2 +1,5 @@
-5,25,First clip
-30,55,Second clip
+# Your own cuts, one per line: start,end,title
+# Times can be seconds (95) or minutes:seconds (1:35)
+# Run:  python clipper.py show.mp4 --clips clips.txt
+0:05,0:25,First clip
+0:30,0:55,Second clip
