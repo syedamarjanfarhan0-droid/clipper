@@ -1,59 +1,85 @@
 # Clipper
 
-Cuts one long video into several short clips automatically.
+Turns one long video (a podcast, a stream, an interview) into short vertical clips for TikTok, Instagram Reels and YouTube Shorts.
 
-You write the start time, end time, and title of each clip in a text file. The script does the rest.
+Give it the long video. It writes a transcript, picks the best moments, crops each one to 9:16 and burns in big word-by-word captions. Everything runs on your own computer; nothing is uploaded unless you turn on the optional Claude picker.
 
-Built to solve a real problem: cutting clips by hand takes minutes each. At 50 clips, that is a full day of repetitive work. This makes it one command.
+## What you get
 
-## What it does
+- 5 clips (or as many as you ask for), each 20 to 60 seconds, in an `output` folder
+- 1080×1920 vertical MP4s that upload straight to TikTok, Reels and Shorts
+- Captions three words at a time, with the word being spoken in yellow
+- A clips file listing every cut, so you can fix a start or end and run again
 
-- Reads a list of clips from `clips.txt`
-- Cuts each one from the source video using ffmpeg
-- Re-encodes to H.264 + AAC so the clips play everywhere
-- Names each file automatically and puts them in an `output` folder
+## Set up (once)
+
+1. Install **Python 3.10 or newer** from [python.org](https://www.python.org/downloads/). On Windows, tick "Add Python to PATH" in the installer.
+2. Get **ffmpeg**. Either install it, or download it and put `ffmpeg.exe` (Windows) or `ffmpeg` (Mac) in this folder.
+3. Open a terminal in this folder and run:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Make clips
+
+**Windows, easiest:** drag your video onto `Make Clips.bat`.
+
+**Any computer:**
+
+```bash
+python clipper.py show.mp4
+```
+
+The first run downloads the speech model (a few hundred MB) and takes a while on a long video. The transcript is saved as `show.transcript.json`, so every run after that starts straight away.
+
+### Options
+
+| Option | What it does |
+|---|---|
+| `--count 10` | Pick 10 clips instead of 5 |
+| `--min 15 --max 45` | Shortest and longest clip, in seconds |
+| `--layout fit` | Show the whole picture on a blurred background instead of zooming in. Good for screen shares and wide shots |
+| `--no-captions` | Leave the captions off |
+| `--model medium` | A more accurate transcript, slower. Choices: `tiny`, `base`, `small` (default), `medium`, `large-v3` |
+| `--out clips` | Save to a different folder |
+
+### Fix a cut
+
+Every run writes `output/<video> clips.txt`:
+
+```
+0:16.5,1:05.1,Then something crazy happened
+1:05.9,2:00.7,Stop doing what everyone else does
+```
+
+Change a time or a title, delete lines you don't want, then run:
+
+```bash
+python clipper.py show.mp4 --clips "output/show clips.txt"
+```
+
+You can also write the file yourself (see `clips.txt`). Times can be seconds (`95`) or minutes:seconds (`1:35`).
+
+### Let Claude pick the moments (optional)
+
+The built-in picker looks for fast, punchy stretches that start and end on a full sentence. For better picks, set an Anthropic API key and Claude reads the transcript and chooses the moments most likely to work as a standalone clip:
+
+```bash
+# Mac / Linux
+export ANTHROPIC_API_KEY=sk-ant-...
+# Windows
+set ANTHROPIC_API_KEY=sk-ant-...
+
+python clipper.py show.mp4
+```
+
+Only the transcript text is sent, never the video. If the key is missing or the call fails, the built-in picker is used. Add `--no-ai` to skip Claude even when a key is set.
 
 ## Requirements
 
-- Python 3
+- Python 3.10+
 - ffmpeg
+- `faster-whisper` (transcript), `anthropic` (optional Claude picker)
 
-No installation needed if you place an `ffmpeg` binary in the same folder — the script will find and use it.
-
-## How to use
-
-**1. Put your video in the folder** and name it `show.mp4`
-
-**2. Write your clips in `clips.txt`**, one per line:
-
-```
-5,25,First clip
-30,55,Second clip
-```
-
-The format is `start,end,title`. Times are in seconds.
-
-**3. Run it:**
-
-```bash
-python3 make_clips.py show.mp4
-```
-
-Your clips appear in the `output` folder.
-
-## Finding the length of your video
-
-```bash
-ffmpeg -i show.mp4 2>&1 | grep Duration
-```
-
-## Roadmap
-
-- [x] Cut clips from manual timestamps
-- [ ] Generate the transcript automatically (Deepgram)
-- [ ] Let AI suggest the clip boundaries
-- [ ] Vertical crop and burned-in captions for Shorts
-
-## Notes
-
-Video files and generated clips are not tracked in this repository.
+Video files, transcripts and generated clips are not tracked in this repository.
